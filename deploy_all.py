@@ -14,20 +14,16 @@ print(base_path)
 # search for "srcdata" folder
 if not base_path.exists():
     logging.error(f"Folder {base_path} does not exist")
-    exit()  
+    exit()
 srcdatafolders = [folder for folder in base_path.rglob("srcdata")]
 if not srcdatafolders:
     logging.error(f"No srcdata folder found in {base_path}")
     exit()
 
-customers = [
-    "siba",
-    "ledlenser",
-    "wepuko"
-]
+customers = ["siba", "ledlenser", "wepuko"]
 
 for customer in customers:
-    
+
     logging.info(f"Deploying {customer}...")
 
     # get credentials from config.ini
@@ -43,15 +39,41 @@ for customer in customers:
     if not srcdatafolder:
         logging.error(f"No srcdata folder found for {customer}")
         continue
-    srcdatafolder = srcdatafolder[0]    
-    logging.info(f"Found srcdata folder: {srcdatafolder}")  
-    
-    # build list of projects (=list of .csv files in srcdata folder) 
-    projects = [project.stem for project in srcdatafolder.glob("*.csv") if project.is_file()]
+    srcdatafolder = srcdatafolder[0]
+    logging.info(f"Found srcdata folder: {srcdatafolder}")
+
+    # build list of projects (=list of .csv files in srcdata folder)
+    projects = [
+        project.stem for project in srcdatafolder.glob("*.csv") if project.is_file()
+    ]
+
     # remove " (ADD1)" and " (ADD2)" from projects
-    projects = [project.replace(" (ADD1)","").replace(" (ADD2)","") for project in projects]
-    logging.info(f"Found {len(projects)} projects in {srcdatafolder}")  
-    
+    projects = [
+        project.replace(" (ADD1)", "").replace(" (ADD2)", "") for project in projects
+    ]
+
+    # get multi projects
+    multi_projects = {}
+    for project in projects:
+        if "_" in project:
+            multi_projects[project] = project.split("_", 1)[1]
+
+    # remove "_" extensions from projects
+    projects = [project.split("_", 1)[0] for project in projects]
+
+    # get mappings
+    mappingfolder = srcdatafolder.parent / "mappings"
+    if not mappingfolder:
+        logging.error(f"No mappings folder found for {customer}")
+        continue
+
+    mappings = [
+        mapping.stem[8:] for mapping in mappingfolder.glob("*.csv") if mapping.is_file()
+    ]
+
+    logging.info(f"Found {len(projects)} projects in {srcdatafolder}")
+    logging.info(f"Found {len(mappings)} mappings in {mappingfolder}")
+
     nl = NemoLibrary(
         tenant=tenant,
         userid=userid,
@@ -59,8 +81,10 @@ for customer in customers:
         environment=environment,
         migman_projects=projects,
         migman_local_project_directory=srcdatafolder.parent,
+        migman_multi_projects=multi_projects,
+        migman_mapping_fields=mappings,
     )
-    
+
     nl.MigManDeleteProjects()
     nl.MigManCreateProjectTemplates()
     nl.MigManLoadData()
