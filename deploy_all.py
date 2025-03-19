@@ -88,3 +88,7 @@ for customer in customers:
     nl.MigManDeleteProjects()
     nl.MigManCreateProjectTemplates()
     nl.MigManLoadData()
+    nl.MigManCreateMapping()
+    nl.MigManLoadMapping()
+    nl.MigManApplyMapping()
+    nl.MigManExportData()
