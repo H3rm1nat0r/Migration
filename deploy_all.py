@@ -103,7 +103,7 @@ for customer in customers:
         )
 
         precheckstatus = nl.MigManPrecheckFiles()
-        if all([value == 'ok' for key, value in precheckstatus.items()]):
+        if all([value == "ok" for key, value in precheckstatus.items()]):
             nl.MigManDeleteProjects()
             nl.MigManCreateProjectTemplates()
             nl.MigManLoadData()
@@ -113,7 +113,7 @@ for customer in customers:
             nl.MigManExportData()
             status[customer] = "ok"
         else:
-            status[customer] = 'precheck not successfull'
+            status[customer] = "precheck not successfull"
 
     except Exception as e:
         logging.error(f"An error occurred while deploying {customer}: {e}")
