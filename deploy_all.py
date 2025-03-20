@@ -3,7 +3,7 @@ import json
 import logging
 from pathlib import Path
 from nemo_library import NemoLibrary
-import traceback  
+import traceback
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -22,13 +22,19 @@ if not srcdatafolders:
     logging.error(f"No srcdata folder found in {base_path}")
     exit()
 
-customers = ["siba", "ledlenser", "wepuko"]
+customers = [
+    "siba",
+    "ledlenser",
+    "wepuko",
+]
 status = {}
 
 for customer in customers:
 
     try:
+        logging.info("*" * 80)
         logging.info(f"Deploying {customer}...")
+        logging.info("*" * 80)
 
         # get credentials from config.ini
         config = ConfigParser()
@@ -36,10 +42,14 @@ for customer in customers:
         tenant = config.get(f"nemo_library_{customer}", "tenant", fallback=None)
         userid = config.get(f"nemo_library_{customer}", "userid", fallback=None)
         password = config.get(f"nemo_library_{customer}", "password", fallback=None)
-        environment = config.get(f"nemo_library_{customer}", "environment", fallback=None)
+        environment = config.get(
+            f"nemo_library_{customer}", "environment", fallback=None
+        )
 
         # identifiy srcdata folder
-        srcdatafolder = [folder for folder in srcdatafolders if customer in folder.parts]
+        srcdatafolder = [
+            folder for folder in srcdatafolders if customer in folder.parts
+        ]
         if not srcdatafolder:
             logging.error(f"No srcdata folder found for {customer}")
             continue
@@ -53,7 +63,8 @@ for customer in customers:
 
         # remove " (ADD1)" and " (ADD2)" from projects
         projects = [
-            project.replace(" (ADD1)", "").replace(" (ADD2)", "") for project in projects
+            project.replace(" (ADD1)", "").replace(" (ADD2)", "")
+            for project in projects
         ]
 
         # get multi projects
@@ -72,7 +83,9 @@ for customer in customers:
             continue
 
         mappings = [
-            mapping.stem[8:] for mapping in mappingfolder.glob("*.csv") if mapping.is_file()
+            mapping.stem[8:]
+            for mapping in mappingfolder.glob("*.csv")
+            if mapping.is_file()
         ]
 
         logging.info(f"Found {len(projects)} projects in {srcdatafolder}")
@@ -89,6 +102,7 @@ for customer in customers:
             migman_mapping_fields=mappings,
         )
 
+        # nl.MigManPrecheckFiles()
         nl.MigManDeleteProjects()
         nl.MigManCreateProjectTemplates()
         nl.MigManLoadData()
@@ -100,8 +114,8 @@ for customer in customers:
 
     except Exception as e:
         logging.error(f"An error occurred while deploying {customer}: {e}")
-        logging.error(traceback.format_exc()) 
-        status[customer] = "error"
-        continue 
+        logging.error(traceback.format_exc())
+        status[customer] = traceback.format_exc()
+        continue
 
 logging.info(f"status of projects: {json.dumps(status,indent=4)}")
