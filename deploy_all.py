@@ -102,15 +102,18 @@ for customer in customers:
             migman_mapping_fields=mappings,
         )
 
-        # nl.MigManPrecheckFiles()
-        nl.MigManDeleteProjects()
-        nl.MigManCreateProjectTemplates()
-        nl.MigManLoadData()
-        nl.MigManCreateMapping()
-        nl.MigManLoadMapping()
-        nl.MigManApplyMapping()
-        nl.MigManExportData()
-        status[customer] = "ok"
+        precheckstatus = nl.MigManPrecheckFiles()
+        if all([value == 'ok' for key, value in precheckstatus.items()]):
+            nl.MigManDeleteProjects()
+            nl.MigManCreateProjectTemplates()
+            nl.MigManLoadData()
+            nl.MigManCreateMapping()
+            nl.MigManLoadMapping()
+            nl.MigManApplyMapping()
+            nl.MigManExportData()
+            status[customer] = "ok"
+        else:
+            status[customer] = 'precheck not successfull'
 
     except Exception as e:
         logging.error(f"An error occurred while deploying {customer}: {e}")
